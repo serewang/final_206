@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 
 def createJSON():
     # apiKey = "Y1FiRjhG75DZ5REYKGAeNrAvVxGCqnTM"
-    baseurl = "https://api.pokemontcg.io/v1/cards"
+    baseurl = "https://api.pokemontcg.io/v2/cards"
     response = requests.get(baseurl)
     jsonVersion = response.json()
     # print(jsonVersion["cards"])
@@ -37,22 +37,55 @@ def setUpDatabase(db_name):
    
 
 def setUpEpisodes(data):
-    # cur.execute("CREATE TABLE IF NOT EXISTS Pokemon_cards (pokemon_id INTEGER PRIMARY KEY, name TEXT, subtype TEXT, type INTEGER)")
-    # cur.execute('CREATE TABLE IF NOT EXISTS Pokemon_Type (type_id INTEGER PRIMARY KEY, type_name TEXT, number INTEGER)')
-    for i in data["cards"]:
+    pokemon_id = 0
+    pokemonCards = []
+    for i in data["data"]:
+        
         try:
-            print(i['name'])
+            name = i['name']
         except:
-            print("noname")
+            name = "noname"
         try:
-            print(i['subtype'])
+            subtype = i['rarity']
         except:
-            print("nosubtype")
+            subtype = "norarity"
         try:
-            print(i['types'][0])
+            types = i['types'][0]
         except:
-            print("notypes")
-    # conn.commit()
+            types = "notypes"
+        tuplePokemon = (pokemon_id, name, subtype, types)
+        pokemon_id = pokemon_id + 1
+        pokemonCards.append(tuplePokemon)
+    return pokemonCards
+def makeTable(data, cur, conn):
+    cur.execute("CREATE TABLE IF NOT EXISTS Pokemon_cards (pokemon_id INTEGER PRIMARY KEY, name TEXT, rarity TEXT, type TEXT)")
+    cur.execute('CREATE TABLE IF NOT EXISTS Pokemon_Type (type_name TEXT PRIMARY KEY, number INTEGER)')
+    start = None
+    cur.execute('SELECT pokemon_id FROM Pokemon_cards WHERE pokemon_id = (SELECT MAX(pokemon_id) FROM Pokemon_cards)')
+    start = cur.fetchone()
+    if (start!=None):
+        start = start[0] + 1
+    else:
+        start = 0
+    cur.execute("INSERT or IGNORE INTO Pokemon_Type (type_name, number) VALUES(?, ?)", ('Colorless', 0))
+    cur.execute("INSERT or IGNORE INTO Pokemon_Type (type_name, number) VALUES(?, ?)", ('Darkness', 0))
+    cur.execute("INSERT or IGNORE INTO Pokemon_Type (type_name, number) VALUES(?, ?)", ('Fairy', 0))
+    cur.execute("INSERT or IGNORE INTO Pokemon_Type (type_name, number) VALUES(?, ?)", ('Fighting', 0))
+    cur.execute("INSERT or IGNORE INTO Pokemon_Type (type_name, number) VALUES(?, ?)", ('Fire', 0))
+    cur.execute("INSERT or IGNORE INTO Pokemon_Type (type_name, number) VALUES(?, ?)", ('Grass', 0))
+    cur.execute("INSERT or IGNORE INTO Pokemon_Type (type_name, number) VALUES(?, ?)", ('Lightning', 0))
+    cur.execute("INSERT or IGNORE INTO Pokemon_Type (type_name, number) VALUES(?, ?)", ('Metal', 0))
+    cur.execute("INSERT or IGNORE INTO Pokemon_Type (type_name, number) VALUES(?, ?)", ('Psychic', 0))
+    cur.execute("INSERT or IGNORE INTO Pokemon_Type (type_name, number) VALUES(?, ?)", ('Water', 0))
+    # cur.execute("INSERT or IGNORE INTO Pokemon_Type (type_name, number) VALUES(?, ?)", ('notypes', 0))
+    for x in data[start: start+25]:
+        cur.execute("INSERT INTO Pokemon_cards (pokemon_id, name, rarity, type) VALUES(?, ?, ?, ?)", (x[0], x[1], x[2], x[3]))
+        cur.execute('SELECT type_name FROM Pokemon_Type')
+        row = cur.fetchall()
+        cur.execute('update Pokemon_Type set number = number + 1 where type_name = ?', (x[3],))
+    conn.commit()
+
+    
     
 def main():
     # cur, conn = setUpDatabase('JRP.db')
@@ -71,12 +104,19 @@ def main():
     # #SECTION 2: if you want to see calculations + visualizations, uncomment lines below.
     # # createPieChart(cur)
     # createBarGraph(cur, 'fileOutputEpisodes.txt')
+    # json_data = readDataFromFile('yelp_data.txt')
+    # cur, conn = setUpDatabase('restaurants.db')
+    # setUpCategoriesTable(json_data, cur, conn)
+    # setUpRestaurantTable(json_data, cur, conn)
     
-    
-    createJSON()
-    data = readDataFromFile("pokemon.json")
-    setUpEpisodes(data)
+    # createJSON()
+    json_data = readDataFromFile("pokemon.json")
+    cur, conn = setUpDatabase('Pokemon.db')
+    pokemon_list = setUpEpisodes(json_data)
+    makeTable(pokemon_list, cur, conn)
     # cardSearch()
+    conn.close()
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
+    unittest.main(verbosity = 2)
