@@ -60,6 +60,7 @@ def setUpEpisodes(data):
 def makeTable(data, cur, conn):
     cur.execute("CREATE TABLE IF NOT EXISTS Pokemon_cards (pokemon_id INTEGER PRIMARY KEY, name TEXT, rarity TEXT, type TEXT)")
     cur.execute('CREATE TABLE IF NOT EXISTS Pokemon_Type (type_name TEXT PRIMARY KEY, number INTEGER)')
+    cur.execute('CREATE TABLE IF NOT EXISTS Pokemon_rarity (rarity_type TEXT PRIMARY KEY, number INTEGER)')
     start = None
     cur.execute('SELECT pokemon_id FROM Pokemon_cards WHERE pokemon_id = (SELECT MAX(pokemon_id) FROM Pokemon_cards)')
     start = cur.fetchone()
@@ -67,25 +68,73 @@ def makeTable(data, cur, conn):
         start = start[0] + 1
     else:
         start = 0
-    cur.execute("INSERT or IGNORE INTO Pokemon_Type (type_name, number) VALUES(?, ?)", ('Colorless', 0))
-    cur.execute("INSERT or IGNORE INTO Pokemon_Type (type_name, number) VALUES(?, ?)", ('Darkness', 0))
-    cur.execute("INSERT or IGNORE INTO Pokemon_Type (type_name, number) VALUES(?, ?)", ('Fairy', 0))
-    cur.execute("INSERT or IGNORE INTO Pokemon_Type (type_name, number) VALUES(?, ?)", ('Fighting', 0))
-    cur.execute("INSERT or IGNORE INTO Pokemon_Type (type_name, number) VALUES(?, ?)", ('Fire', 0))
-    cur.execute("INSERT or IGNORE INTO Pokemon_Type (type_name, number) VALUES(?, ?)", ('Grass', 0))
-    cur.execute("INSERT or IGNORE INTO Pokemon_Type (type_name, number) VALUES(?, ?)", ('Lightning', 0))
-    cur.execute("INSERT or IGNORE INTO Pokemon_Type (type_name, number) VALUES(?, ?)", ('Metal', 0))
-    cur.execute("INSERT or IGNORE INTO Pokemon_Type (type_name, number) VALUES(?, ?)", ('Psychic', 0))
-    cur.execute("INSERT or IGNORE INTO Pokemon_Type (type_name, number) VALUES(?, ?)", ('Water', 0))
+    # cur.execute("INSERT or IGNORE INTO Pokemon_Type (type_name, number) VALUES(?, ?)", ('Colorless', 0))
+    # cur.execute("INSERT or IGNORE INTO Pokemon_Type (type_name, number) VALUES(?, ?)", ('Darkness', 0))
+    # cur.execute("INSERT or IGNORE INTO Pokemon_Type (type_name, number) VALUES(?, ?)", ('Dragon', 0))
+    # cur.execute("INSERT or IGNORE INTO Pokemon_Type (type_name, number) VALUES(?, ?)", ('Fighting', 0))
+    # cur.execute("INSERT or IGNORE INTO Pokemon_Type (type_name, number) VALUES(?, ?)", ('Fire', 0))
+    # cur.execute("INSERT or IGNORE INTO Pokemon_Type (type_name, number) VALUES(?, ?)", ('Grass', 0))
+    # cur.execute("INSERT or IGNORE INTO Pokemon_Type (type_name, number) VALUES(?, ?)", ('Lightning', 0))
+    # cur.execute("INSERT or IGNORE INTO Pokemon_Type (type_name, number) VALUES(?, ?)", ('Metal', 0))
+    # cur.execute("INSERT or IGNORE INTO Pokemon_Type (type_name, number) VALUES(?, ?)", ('Psychic', 0))
+    # cur.execute("INSERT or IGNORE INTO Pokemon_Type (type_name, number) VALUES(?, ?)", ('Water', 0))
     # cur.execute("INSERT or IGNORE INTO Pokemon_Type (type_name, number) VALUES(?, ?)", ('notypes', 0))
     for x in data[start: start+25]:
+        
         cur.execute("INSERT INTO Pokemon_cards (pokemon_id, name, rarity, type) VALUES(?, ?, ?, ?)", (x[0], x[1], x[2], x[3]))
+        cur.execute("INSERT or IGNORE INTO Pokemon_Type (type_name, number) VALUES(?, ?)", (x[3],0))
         cur.execute('SELECT type_name FROM Pokemon_Type')
         row = cur.fetchall()
         cur.execute('update Pokemon_Type set number = number + 1 where type_name = ?', (x[3],))
+        cur.execute("INSERT or IGNORE INTO Pokemon_rarity (rarity_type, number) VALUES(?, ?)", (x[2],0))
+        cur.execute('SELECT rarity_type FROM Pokemon_rarity')
+        row = cur.fetchall()
+        cur.execute('update Pokemon_rarity set number = number + 1 where rarity_type = ?', (x[2],))
     conn.commit()
 
-    
+def barChart(cur):
+    # Initialize the plotcd
+    fig = plt.figure(figsize=(10,4))
+    ax1 = fig.add_subplot()   
+    #making ax1
+    l1 = dict()
+    cur.execute('SELECT type_name,number FROM Pokemon_Type ORDER BY number DESC')
+    cur1 = cur.fetchall()
+    for row in cur1:
+        l1[row[0]]=row[1]
+
+    people = []
+    apperances=[]
+    for key,value in l1.items():
+        people.append(key)
+        apperances.append(value)
+    ax1.bar(people,apperances,align='center', alpha=0.5, color='blue')
+    ax1.set(xlabel='Pokemon Name', ylabel='Amount',
+       title='Amount of each Pokemon Type')
+    ax1.set_xticklabels(people,FontSize='9')
+    plt.show()
+def pieChart(cur):
+    # Initialize the plotcd
+    fig = plt.figure(figsize=(10,4))
+    ax1 = fig.add_subplot()   
+    #making ax1
+    l1 = dict()
+    cur.execute('SELECT rarity_type,number FROM Pokemon_rarity ORDER BY number DESC')
+    cur1 = cur.fetchall()
+    for row in cur1:
+        l1[row[0]]=row[1]
+
+    people = []
+    apperances=[]
+    for key,value in l1.items():
+        people.append(key)
+        apperances.append(value)
+    ax1.pie(apperances, labels = people,autopct='%1.1f%%',
+        shadow=False, startangle=180)
+    ax1.axis('equal')
+    ax1.set(title='Rarity of each Pokemon Card')
+    plt.show()
+
     
 def main():
     # cur, conn = setUpDatabase('JRP.db')
@@ -114,7 +163,8 @@ def main():
     cur, conn = setUpDatabase('Pokemon.db')
     pokemon_list = setUpEpisodes(json_data)
     makeTable(pokemon_list, cur, conn)
-    # cardSearch()
+    # barChart(cur)
+    # pieChart(cur)
     conn.close()
 
 if __name__ == "__main__":
