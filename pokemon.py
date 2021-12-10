@@ -137,7 +137,7 @@ def pieChart(cur):
 
     
 def main():
-    # cur, conn = setUpDatabase('JRP.db')
+    cur, conn = setUpDatabase('CardGames.db')
 
     # #SECTION 1: get data
     # #to create accurate visualizations, you should gather at least 200 pieces of data (run code 8 times)
@@ -160,12 +160,12 @@ def main():
     
     # createJSON()
     json_data = readDataFromFile("pokemon.json")
-    cur, conn = setUpDatabase('Pokemon.db')
+    # cur, conn = setUpDatabase('Pokemon.db')
     pokemon_list = setUpEpisodes(json_data)
     makeTable(pokemon_list, cur, conn)
     # barChart(cur)
     # pieChart(cur)
-    conn.close()
+    # conn.close()
 
 if __name__ == "__main__":
     main()

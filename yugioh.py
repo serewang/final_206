@@ -139,9 +139,9 @@ def pieChart(typeDict):
 
 def main():
     data = cards()
-    cur, conn = setUpDatabase('Yugioh.db')
+    cur, conn = setUpDatabase('CardGames.db')
     # setRaceDB(cur, conn)
-    # setDB(data,cur,conn)
+    setDB(data,cur,conn)
 
     #uncomment to get visualizations 
 
