@@ -1,0 +1,21 @@
+Type, Frequency of Type
+Grass, 41
+Fire, 12
+Colorless, 9
+Water, 8
+Psychic, 8
+Lightning, 7
+Fighting, 5
+Metal, 4
+Darkness, 3
+Dragon, 3
+
+Rarity, Frequency of Rarity
+Rare Holo, 54
+Common, 19
+Rare, 10
+Uncommon, 6
+norarity, 5
+Promo, 3
+Rare Holo GX, 2
+Rare Holo V, 1
