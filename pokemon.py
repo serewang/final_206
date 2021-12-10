@@ -93,10 +93,10 @@ def makeTable(data, cur, conn):
     conn.commit()
 
 def barChart(cur):
-    # Initialize the plotcd
+
     fig = plt.figure(figsize=(10,4))
     ax1 = fig.add_subplot()   
-    #making ax1
+
     l1 = dict()
     cur.execute('SELECT type_name,number FROM Pokemon_Type ORDER BY number DESC')
     cur1 = cur.fetchall()
@@ -114,10 +114,10 @@ def barChart(cur):
     ax1.set_xticklabels(people,FontSize='9')
     plt.show()
 def pieChart(cur):
-    # Initialize the plotcd
+
     fig = plt.figure(figsize=(10,4))
     ax1 = fig.add_subplot()   
-    #making ax1
+
     l1 = dict()
     cur.execute('SELECT rarity_type,number FROM Pokemon_rarity ORDER BY number DESC')
     cur1 = cur.fetchall()
@@ -137,35 +137,15 @@ def pieChart(cur):
 
     
 def main():
-    cur, conn = setUpDatabase('CardGames.db')
 
-    # #SECTION 1: get data
-    # #to create accurate visualizations, you should gather at least 200 pieces of data (run code 8 times)
-    # try:
-    #     cur.execute('SELECT episode_id FROM Spotify_Episodes WHERE episode_id  = (SELECT MAX(episode_id) FROM Spotify_Episodes)')
-    #     start = cur.fetchone()
-    #     start = start[0]
-    # except:
-    #     start = 0
-    # data = episodes_search('4rOoJ6Egrf8K2IrywzwOMk', start, cur)
-    # setUpEpisodes(data, cur, conn)
-
-    # #SECTION 2: if you want to see calculations + visualizations, uncomment lines below.
-    # # createPieChart(cur)
-    # createBarGraph(cur, 'fileOutputEpisodes.txt')
-    # json_data = readDataFromFile('yelp_data.txt')
-    # cur, conn = setUpDatabase('restaurants.db')
-    # setUpCategoriesTable(json_data, cur, conn)
-    # setUpRestaurantTable(json_data, cur, conn)
-    
     # createJSON()
     json_data = readDataFromFile("pokemon.json")
-    # cur, conn = setUpDatabase('Pokemon.db')
+    cur, conn = setUpDatabase('Pokemon.db')
     pokemon_list = setUpEpisodes(json_data)
     makeTable(pokemon_list, cur, conn)
     # barChart(cur)
     # pieChart(cur)
-    # conn.close()
+    conn.close()
 
 if __name__ == "__main__":
     main()
