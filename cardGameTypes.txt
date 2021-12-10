@@ -1,0 +1,22 @@
+Type, Frequency of Type
+Grass, 41
+Spell Card, 36
+Effect Monster, 19
+Trap Card, 18
+Fire, 12
+Pendulum Effect Monster, 12
+Colorless, 9
+Water, 8
+Psychic, 8
+Lightning, 7
+Fighting, 5
+Metal, 4
+Normal Monster, 4
+Darkness, 3
+Dragon, 3
+Flip Effect Monster, 3
+Link Monster, 3
+Fusion Monster, 2
+Union Effect Monster, 1
+XYZ Monster, 1
+Synchro Tuner Monster, 1
