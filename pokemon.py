@@ -97,54 +97,121 @@ def barChart(cur):
     fig = plt.figure(figsize=(10,4))
     ax1 = fig.add_subplot()   
 
-    l1 = dict()
+    pokemonDict = dict()
     cur.execute('SELECT type_name,number FROM Pokemon_Type ORDER BY number DESC')
     cur1 = cur.fetchall()
     for row in cur1:
-        l1[row[0]]=row[1]
+        pokemonDict[row[0]]=row[1]
 
-    people = []
-    apperances=[]
-    for key,value in l1.items():
-        people.append(key)
-        apperances.append(value)
-    ax1.bar(people,apperances,align='center', alpha=0.5, color='blue')
-    ax1.set(xlabel='Pokemon Name', ylabel='Amount',
-       title='Amount of each Pokemon Type')
-    ax1.set_xticklabels(people,FontSize='9')
+    types = []
+    frequency=[]
+    for key,value in pokemonDict.items():
+        types.append(key)
+        frequency.append(value)
+    ax1.bar(types,frequency,align='center', alpha=0.5, color='blue')
+    ax1.set(xlabel='Pokemon Name', ylabel='Frequency',
+       title='Frequency of each Pokemon Type in a Random 100-Card Sample')
+    ax1.set_xticklabels(types,FontSize='9')
     plt.show()
 def pieChart(cur):
 
     fig = plt.figure(figsize=(10,4))
     ax1 = fig.add_subplot()   
 
-    l1 = dict()
+    pokemonDict = dict()
     cur.execute('SELECT rarity_type,number FROM Pokemon_rarity ORDER BY number DESC')
     cur1 = cur.fetchall()
     for row in cur1:
-        l1[row[0]]=row[1]
+        pokemonDict[row[0]]=row[1]
 
-    people = []
-    apperances=[]
-    for key,value in l1.items():
-        people.append(key)
-        apperances.append(value)
-    ax1.pie(apperances, labels = people,autopct='%1.1f%%',
+    types = []
+    frequency=[]
+    for key,value in pokemonDict.items():
+        types.append(key)
+        frequency.append(value)
+    ax1.pie(frequency, labels = types,autopct='%1.1f%%',
         shadow=False, startangle=180)
     ax1.axis('equal')
-    ax1.set(title='Rarity of each Pokemon Card')
+    ax1.set(title='Rarity of each Pokemon Card in a Random 100-Card Sample')
     plt.show()
+def writeCSV(filename, cur):
+    path = os.path.dirname(os.path.abspath(__file__)) + os.sep
+    outFile = open(path+filename, "w")
+    outFile.write("Type, Frequency of Type\n")
+    cur.execute('SELECT type_name,number FROM Pokemon_Type ORDER BY number DESC')
+    cur1 = cur.fetchall()
+    pokemonDict = dict()
+    for row in cur1:
+        pokemonDict[row[0]]=row[1]
 
+    for key,value in pokemonDict.items():
+        outFile.write(f"{key}, {value}")
+        outFile.write("\n")
+    cur.execute('SELECT rarity_type,number FROM Pokemon_rarity ORDER BY number DESC')
+    cur2 = cur.fetchall()
+    rarityDict = dict()
+    outFile.write("\n")
+    for row in cur2:
+        rarityDict[row[0]]=row[1]
+    outFile.write("Rarity, Frequency of Rarity\n")
+    for key,value in rarityDict.items():
+        outFile.write(f"{key}, {value}")
+        outFile.write("\n")
+    outFile.close()
+def writeCSVforboth(filename, cur):
+    path = os.path.dirname(os.path.abspath(__file__)) + os.sep
+    outFile = open(path+filename, "w")
+    outFile.write("Type, Frequency of Type\n")
+    cur.execute('SELECT type_name,number FROM Pokemon_Type')
+    cur1 = cur.fetchall()
+    cardGameDict = dict()
+    for row in cur1:
+        cardGameDict[row[0]]=row[1]
+    cur.execute("SELECT name, type FROM Yugioh")
+    typeFreq = cur.fetchall()  
+    for i in typeFreq:
+        if i[1] not in cardGameDict:
+            cardGameDict[i[1]] = 1
+        else:
+            cardGameDict[i[1]] += 1
+    cardGameDict = sorted(cardGameDict.items(), key = lambda item:item[1], reverse=True)
+    for x in cardGameDict:
+        outFile.write(f"{x[0]}, {x[1]}")
+        outFile.write("\n")
+    total = 0
+    for x in cardGameDict:
+        total = total + x[1]
+    average = total/len(cardGameDict)
+    outFile.write("average: " + f"{round(average, 2)}")
+    
+    outFile.close()
+    return cardGameDict
+def barChartforBoth(cardGameDict):
+    fig = plt.figure(figsize=(10,4))
+    ax1 = fig.add_subplot()
+    races = []
+    frequency = []  
+    for i in cardGameDict:
+        if i[1] >= 10:
+            races.append(i[0])
+            frequency.append(i[1])
+    ax1.bar(races, frequency, align='center', alpha=1, color='pink')
+    ax1.set(xlabel='Types', ylabel='Frequency',
+    title='Top types in Pokemon and Yugioh in a Random 100-Card Sample')
+    plt.show()
     
 def main():
 
     # createJSON()
     json_data = readDataFromFile("pokemon.json")
-    cur, conn = setUpDatabase('Pokemon.db')
-    pokemon_list = setUpEpisodes(json_data)
-    makeTable(pokemon_list, cur, conn)
+    cur, conn = setUpDatabase('CardGames.db')
+    # pokemon_list = setUpEpisodes(json_data)
+    # makeTable(pokemon_list, cur, conn)
     # barChart(cur)
     # pieChart(cur)
+    # writeCSV("pokemon.txt", cur)
+    # cardGameDict = writeCSVforboth("cardGameTypes.txt", cur)
+    # barChartforBoth(cardGameDict)
     conn.close()
 
 if __name__ == "__main__":
