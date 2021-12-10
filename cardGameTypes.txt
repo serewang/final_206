@@ -20,3 +20,4 @@ Fusion Monster, 2
 Union Effect Monster, 1
 XYZ Monster, 1
 Synchro Tuner Monster, 1
+average: 9.52
