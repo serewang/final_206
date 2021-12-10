@@ -8,7 +8,7 @@ import sqlite3
 import matplotlib
 import matplotlib.pyplot as plt
 
-# Sets up a list of tuples for card info to later insert into the database 
+# Sets up and returns a list of tuples for card info to later insert into the database. Takes nothing as input.
 def cards():
     r = requests.get("https://db.ygoprodeck.com/api/v7/cardinfo.php")
     jsonfile = r.json()
@@ -28,13 +28,15 @@ def cards():
         x += 1
     return tuplist
 
+
+#A function to set up the database where all the information will be stored in. Takes the db_name as input and returns cur, conn.
 def setUpDatabase(db_name):
     path = os.path.dirname(os.path.abspath(__file__))
     conn = sqlite3.connect(path+'/'+db_name)
     cur = conn.cursor()
     return cur, conn
 
-#Sets overall database 
+#Sets overall database, takes the card data from cards() function and returns nothing.
 def setDB(yugioh, cur, conn):
     # cur.execute("DROP TABLE IF EXISTS Yugioh")
     cur.execute("CREATE TABLE IF NOT EXISTS Yugioh (id INTEGER PRIMARY KEY, unique_id NUMBER, name text, type TEXT, race_id INTEGER)")
@@ -56,7 +58,7 @@ def setDB(yugioh, cur, conn):
                 race_id = i[0]
                 cur.execute("INSERT INTO Yugioh (id, unique_id, name, type, race_id) VALUES(?, ?, ?, ?, ?)", (id, unique_id, name, type, race_id))
     conn.commit()
-#Set up a separate database for the races and race ids 
+#Set up a separate database for the races and race ids. Takes cur, conn as input and returns nothing.
 def setRaceDB(cur, conn):
     cur.execute("DROP TABLE IF EXISTS Races")
     l = ["Normal", "Quick-Play", "Fish", "Aqua", "Continuous", "Equip", "Machine", "Cyberse", "Warrior", "Insect", "Beast", "Field", "Spellcaster", "Ritual", "Fiend", "Rock", "Fairy", "Dragon", "Plant", "Sea Serpent", "Beast-Warrior"]
@@ -64,7 +66,7 @@ def setRaceDB(cur, conn):
     for x in range(len(l)):
         cur.execute("INSERT INTO Races (id, race) VALUES (?,?)", (x, l[x]))
     conn.commit()
-#Use a JOIN to get frequency of races and returns a dictionary with the race as key and frequency as value
+#Use a JOIN to get frequency of races, takes cur as input and returns a dictionary with the race as key and frequency as value
 def getRaceFreq(cur):
     raceDict= {}
     cur.execute("""SELECT  Yugioh.name , Races.race FROM Yugioh
@@ -77,7 +79,7 @@ def getRaceFreq(cur):
         else:
             raceDict[i[1]] += 1
     return sorted(raceDict.items(), key = lambda item:item[1], reverse=True)
-#Creates a barchart based off of the returned race dictionary
+#Creates a barchart based off of the returned race dictionary, takes the output from getRaceFreq as input and returns nothing.
 def barChart(raceDict):
     fig = plt.figure(figsize=(10,4))
     ax1 = fig.add_subplot()
@@ -91,7 +93,7 @@ def barChart(raceDict):
     ax1.set(xlabel='Race', ylabel='Frequency',
     title='Frequency of Each Yugioh Race in a Random 100-Card Sample')
     plt.show()
-#Gets frequency of types and returns a dictionary with keys as types and values as frequencies
+#Gets frequency of types and takes cur as input, returns a dictionary with keys as types and values as frequencies
 def getTypeFreq(cur):
     typeDict= {}
     cur.execute("SELECT name, type FROM Yugioh")
@@ -103,7 +105,7 @@ def getTypeFreq(cur):
             typeDict[i[1]] += 1
     return sorted(typeDict.items(), key = lambda item:item[1], reverse=True)
 
-#Writes all calculated data to a csv file
+#Writes all calculated data to a csv file. Takes filename, output values from getRaceFreq and getTypeFreq as input and returns nothing.
 def write_to_csv(filename, raceDict, typeDict):
     path = os.path.dirname(os.path.abspath(__file__)) + os.sep
     outFile = open(path+filename, "w")
@@ -118,7 +120,7 @@ def write_to_csv(filename, raceDict, typeDict):
         outFile.write("\n")
     outFile.close()
 
-#Creates a pie chart showing the frequency of each type 
+#Creates a pie chart showing the frequency of each type, takes output from getTypeFreq as input and returns nothing.
 def pieChart(typeDict):
     fig = plt.figure(figsize=(10,4))
     ax1 = fig.add_subplot()
