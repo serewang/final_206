@@ -1,0 +1,35 @@
+Race, Frequency
+Normal, 29
+Fiend, 16
+Continuous, 10
+Equip, 7
+Quick-Play, 5
+Machine, 5
+Fish, 4
+Warrior, 4
+Aqua, 3
+Insect, 3
+Beast, 2
+Field, 2
+Cyberse, 2
+Spellcaster, 1
+Ritual, 1
+Beast-Warrior, 1
+Rock, 1
+Fairy, 1
+Dragon, 1
+Sea Serpent, 1
+Plant, 1
+
+Type, Frequency
+Spell Card, 36
+Effect Monster, 19
+Trap Card, 18
+Pendulum Effect Monster, 12
+Normal Monster, 4
+Flip Effect Monster, 3
+Link Monster, 3
+Fusion Monster, 2
+Union Effect Monster, 1
+XYZ Monster, 1
+Synchro Tuner Monster, 1
