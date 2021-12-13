@@ -57,6 +57,20 @@ def setUpEpisodes(data):
         pokemon_id = pokemon_id + 1
         pokemonCards.append(tuplePokemon)
     return pokemonCards
+def setRarityDB(cur, conn):
+    cur.execute("DROP TABLE IF EXISTS RarityPokemonKey")
+    l = ["Rare Holo","Common","Promo", "norarity", "Rare Holo GX", "Rare", "Uncommon", "Rare Holo V"]
+    cur.execute("CREATE TABLE IF NOT EXISTS RarityPokemonKey (id INTEGER PRIMARY KEY, rarity TEXT)")
+    for x in range(len(l)):
+        cur.execute("INSERT INTO RarityPokemonKey (id, rarity) VALUES (?,?)", (x, l[x]))
+    conn.commit()
+def setTypeDB(cur, conn):
+    cur.execute("DROP TABLE IF EXISTS TypePokemonKey")
+    l = ["Darkness", "Colorless", "Grass", "Water", "Metal", "Psychic", "Lightning", "Dragon", "Fire",  "Fighting"]
+    cur.execute("CREATE TABLE IF NOT EXISTS TypePokemonKey (id INTEGER PRIMARY KEY, type TEXT)")
+    for x in range(len(l)):
+        cur.execute("INSERT INTO TypePokemonKey (id, type) VALUES (?,?)", (x, l[x]))
+    conn.commit()
 def makeTable(data, cur, conn):
     cur.execute("CREATE TABLE IF NOT EXISTS Pokemon_cards (pokemon_id INTEGER PRIMARY KEY, name TEXT, rarity TEXT, type TEXT)")
     cur.execute('CREATE TABLE IF NOT EXISTS Pokemon_Type (type_name TEXT PRIMARY KEY, number INTEGER)')
@@ -68,20 +82,21 @@ def makeTable(data, cur, conn):
         start = start[0] + 1
     else:
         start = 0
-    # cur.execute("INSERT or IGNORE INTO Pokemon_Type (type_name, number) VALUES(?, ?)", ('Colorless', 0))
-    # cur.execute("INSERT or IGNORE INTO Pokemon_Type (type_name, number) VALUES(?, ?)", ('Darkness', 0))
-    # cur.execute("INSERT or IGNORE INTO Pokemon_Type (type_name, number) VALUES(?, ?)", ('Dragon', 0))
-    # cur.execute("INSERT or IGNORE INTO Pokemon_Type (type_name, number) VALUES(?, ?)", ('Fighting', 0))
-    # cur.execute("INSERT or IGNORE INTO Pokemon_Type (type_name, number) VALUES(?, ?)", ('Fire', 0))
-    # cur.execute("INSERT or IGNORE INTO Pokemon_Type (type_name, number) VALUES(?, ?)", ('Grass', 0))
-    # cur.execute("INSERT or IGNORE INTO Pokemon_Type (type_name, number) VALUES(?, ?)", ('Lightning', 0))
-    # cur.execute("INSERT or IGNORE INTO Pokemon_Type (type_name, number) VALUES(?, ?)", ('Metal', 0))
-    # cur.execute("INSERT or IGNORE INTO Pokemon_Type (type_name, number) VALUES(?, ?)", ('Psychic', 0))
-    # cur.execute("INSERT or IGNORE INTO Pokemon_Type (type_name, number) VALUES(?, ?)", ('Water', 0))
-    # cur.execute("INSERT or IGNORE INTO Pokemon_Type (type_name, number) VALUES(?, ?)", ('notypes', 0))
     for x in data[start: start+25]:
+        cur.execute('SELECT id, type from TypePokemonKey')
+        typefetch = cur.fetchall()
+        typeId = 0
+        for i in typefetch:
+            if x[3] == i[1]:
+                typeId = i[0]
+        cur.execute('SELECT id, rarity from RarityPokemonKey')
+        rarityfetch = cur.fetchall()
+        rarityId = 0
+        for i in rarityfetch:
+            if x[2] == i[1]:
+                rarityId = i[0]
         
-        cur.execute("INSERT INTO Pokemon_cards (pokemon_id, name, rarity, type) VALUES(?, ?, ?, ?)", (x[0], x[1], x[2], x[3]))
+        cur.execute("INSERT INTO Pokemon_cards (pokemon_id, name, rarity, type) VALUES(?, ?, ?, ?)", (x[0], x[1], rarityId, typeId))
         cur.execute("INSERT or IGNORE INTO Pokemon_Type (type_name, number) VALUES(?, ?)", (x[3],0))
         cur.execute('SELECT type_name FROM Pokemon_Type')
         row = cur.fetchall()
@@ -205,8 +220,10 @@ def main():
     # createJSON()
     json_data = readDataFromFile("pokemon.json")
     cur, conn = setUpDatabase('CardGames.db')
-    # pokemon_list = setUpEpisodes(json_data)
-    # makeTable(pokemon_list, cur, conn)
+    setTypeDB(cur, conn)
+    setRarityDB(cur, conn)
+    pokemon_list = setUpEpisodes(json_data)
+    makeTable(pokemon_list, cur, conn)
     # barChart(cur)
     # pieChart(cur)
     # writeCSV("pokemon.txt", cur)
