@@ -39,7 +39,7 @@ def setUpDatabase(db_name):
 #Sets overall database, takes the card data from cards() function and returns nothing.
 def setDB(yugioh, cur, conn):
     # cur.execute("DROP TABLE IF EXISTS Yugioh")
-    cur.execute("CREATE TABLE IF NOT EXISTS Yugioh (id INTEGER PRIMARY KEY, unique_id NUMBER, name text, type TEXT, race_id INTEGER)")
+    cur.execute("CREATE TABLE IF NOT EXISTS Yugioh (id INTEGER PRIMARY KEY, unique_id NUMBER, name text, type_id number, race_id INTEGER)")
     cur.execute('SELECT id FROM Yugioh WHERE id  = (SELECT MAX(id) FROM Yugioh)')
     start = cur.fetchone()
     if (start!=None):
@@ -50,13 +50,14 @@ def setDB(yugioh, cur, conn):
         id = x[0]
         unique_id = x[1]
         name = x[2]
-        type = x[3]
-        cur.execute('SELECT id, race FROM Races') #Using an index for races to save storage
-        race_ids = cur.fetchall()
-        for i in race_ids:
+        cur.execute('SELECT Races.id, Races.race, Types.id, Types.type FROM Races, Types') #Using an index for races to save storage
+        ids = cur.fetchall()
+        for i in ids:
             if i[1] == x[4]:
                 race_id = i[0]
-                cur.execute("INSERT INTO Yugioh (id, unique_id, name, type, race_id) VALUES(?, ?, ?, ?, ?)", (id, unique_id, name, type, race_id))
+                if i[3] == x[3]:
+                    type_id = i[2]
+                    cur.execute("INSERT or IGNORE INTO Yugioh (id, unique_id, name, type_id, race_id) VALUES(?, ?, ?, ?, ?)", (id, unique_id, name, type_id, race_id))
     conn.commit()
 #Set up a separate database for the races and race ids. Takes cur, conn as input and returns nothing.
 def setRaceDB(cur, conn):
@@ -65,6 +66,14 @@ def setRaceDB(cur, conn):
     cur.execute("CREATE TABLE IF NOT EXISTS Races (id INTEGER PRIMARY KEY, race TEXT)")
     for x in range(len(l)):
         cur.execute("INSERT INTO Races (id, race) VALUES (?,?)", (x, l[x]))
+    conn.commit()
+#Set up separate database for types and type ids. Takes cur, conn as input and returns nothing
+def setTypeDB(cur, conn):
+    cur.execute("DROP TABLE IF EXISTS Types")
+    l = ["Spell Card", "Effect Monster", "Normal Monster", "Flip Effect Monster", "Trap Card", "Union Effect Monster", "Fusion Monster", "Pendulum Effect Monster", "Link Monster", "XYZ Monster", "Link Monster", "Synchro Tuner Monster"]
+    cur.execute("CREATE TABLE IF NOT EXISTS Types (id INTEGER PRIMARY KEY, type TEXT)")
+    for x in range(len(l)):
+        cur.execute("INSERT INTO Types (id, type) VALUES (?,?)", (x, l[x]))
     conn.commit()
 #Use a JOIN to get frequency of races, takes cur as input and returns a dictionary with the race as key and frequency as value
 def getRaceFreq(cur):
@@ -96,7 +105,9 @@ def barChart(raceDict):
 #Gets frequency of types and takes cur as input, returns a dictionary with keys as types and values as frequencies
 def getTypeFreq(cur):
     typeDict= {}
-    cur.execute("SELECT name, type FROM Yugioh")
+    cur.execute("""SELECT  Yugioh.name, Types.type FROM Yugioh
+    JOIN Types
+    ON Yugioh.type_id = Types.id""")
     typeFreq = cur.fetchall()  
     for i in typeFreq:
         if i[1] not in typeDict:
@@ -143,13 +154,15 @@ def main():
     data = cards()
     cur, conn = setUpDatabase('CardGames.db')
     # setRaceDB(cur, conn)
-    setDB(data,cur,conn)
+    # setTypeDB(cur, conn)
+    # setDB(data,cur,conn)
+    
 
     #uncomment to get visualizations 
 
-    # typeDict = getTypeFreq(cur)
-    # raceDict = getRaceFreq(cur)
-    # barChart(raceDict)
+    typeDict = getTypeFreq(cur)
+    raceDict = getRaceFreq(cur)
+    barChart(raceDict) 
     # pieChart(typeDict)
     
     # write_to_csv("yugioh.txt", raceDict, typeDict)
