@@ -217,7 +217,7 @@ def barChartforBoth(cardGameDict):
     
 def main():
 
-    # createJSON()
+    createJSON()
     json_data = readDataFromFile("pokemon.json")
     cur, conn = setUpDatabase('CardGames.db')
     setTypeDB(cur, conn)

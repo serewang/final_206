@@ -153,16 +153,16 @@ def pieChart(typeDict):
 def main():
     data = cards()
     cur, conn = setUpDatabase('CardGames.db')
-    # setRaceDB(cur, conn)
-    # setTypeDB(cur, conn)
-    # setDB(data,cur,conn)
+    setRaceDB(cur, conn)
+    setTypeDB(cur, conn)
+    setDB(data,cur,conn)
     
 
     #uncomment to get visualizations 
 
-    typeDict = getTypeFreq(cur)
-    raceDict = getRaceFreq(cur)
-    barChart(raceDict) 
+    # typeDict = getTypeFreq(cur)
+    # raceDict = getRaceFreq(cur)
+    # barChart(raceDict) 
     # pieChart(typeDict)
     
     # write_to_csv("yugioh.txt", raceDict, typeDict)
